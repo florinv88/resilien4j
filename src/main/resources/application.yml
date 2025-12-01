@@ -1,0 +1,30 @@
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, metrics, retries
+  endpoint:
+    health:
+      show-details: always
+
+resilience4j.retry:
+  metrics:
+    enabled: true
+  configs:
+    defaults:
+      max-attempts: 3
+      wait-duration: 500ms
+      enable-exponential-backoff: true
+      exponential-backoff-multiplier: 2
+      enable-randomized-wait: true
+      randomized-wait-factor: 0.3
+      retry-exceptions:
+        - java.util.concurrent.TimeoutException
+        - java.net.SocketTimeoutException
+        - org.springframework.web.client.HttpServerErrorException
+        - org.springframework.web.client.ResourceAccessException
+      ignore-exceptions:
+          - org.springframework.web.client.HttpClientErrorException
+  instances:
+    basicRetry:
+      base-config: defaults
