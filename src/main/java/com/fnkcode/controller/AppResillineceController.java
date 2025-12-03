@@ -28,6 +28,7 @@ public class AppResillineceController {
     @Retry(name = "basicRetry", fallbackMethod = "getNotOkResponseFallback")
     @GetMapping("/nok")
     public ResponseEntity<String> getNotOkResponse() {
+        log.info("calling nok");
         return restClient.get()
                 .uri("http://localhost:8080/api/nok")
                 .retrieve()
