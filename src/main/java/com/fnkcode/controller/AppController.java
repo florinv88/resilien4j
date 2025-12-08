@@ -17,6 +17,12 @@ public class AppController {
 
     @GetMapping("/nok")
     public ResponseEntity<String> getNotOkResponse() {
+        try {
+            Thread.sleep(3500);
+            return ResponseEntity.ok("ok");
+        } catch (InterruptedException e) {
+            System.out.println(e.getMessage());
+        }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 //        return ResponseEntity.notFound().build();
     }

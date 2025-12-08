@@ -1,0 +1,19 @@
+#Varianta 1
+Short Timeout Operations (restClientShortTimeout):
+ - Single attempt: 3 s max
+ - Retry scenario: 3 s + 50 ms + 3 s + 75 ms + 3 s = 9.1 s
+ - Time Limiter budget: 8 s (will cancel if exceeds)
+
+ #Varianta 2
+Standard Operations (restClient):
+  - Single attempt: 5 s max
+  - Retry scenario: 5 s + 100 ms + 5 s + 150 ms + 5 s = 15.25 s
+  - Time Limiter budget: 10s (will cancel if exceeds)
+  - 2 attempts before canceling
+
+#Varianta 3
+Long Operations (restClientLongTimeout):
+  - Single attempt: 15 s max
+  - Retry scenario: 15 s + 500 ms + 15 s = 30.5 s
+  - Time Limiter budget: 30s (will cancel if exceeds)
+  - 1 retry before canceling

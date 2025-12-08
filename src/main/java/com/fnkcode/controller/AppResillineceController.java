@@ -1,8 +1,10 @@
 package com.fnkcode.controller;
 
+import com.fnkcode.sla.StrictSLA;
 import io.github.resilience4j.retry.annotation.Retry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,23 +12,33 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestClient;
 
+import static com.fnkcode.sla.SLAValues.shortRetryMaxTimeBudgetMillis;
+
 @RestController
 @RequestMapping("/api/rs")
 public class AppResillineceController {
 
     private static final Logger log = LoggerFactory.getLogger(AppResillineceController.class);
-    private final RestClient restClient = RestClient.create();
+
+    private final RestClient restClientShortTimeout;
+    private final RestClient restClient;
+
+    public AppResillineceController(RestClient restClientShortTimeout, RestClient restClient) {
+        this.restClientShortTimeout = restClientShortTimeout;
+        this.restClient = restClient;
+    }
 
     @GetMapping("/ok")
     public ResponseEntity<String> getOkResponse() {
-        return restClient.get()
+        return restClientShortTimeout.get()
                 .uri("http://localhost:8080/api/ok")
                 .retrieve()
                 .toEntity(String.class);
     }
 
-    @Retry(name = "basicRetry", fallbackMethod = "getNotOkResponseFallback")
+    @Retry(name = "normalRetry", fallbackMethod = "getNotOkResponseFallback")
     @GetMapping("/nok")
+    @StrictSLA(value = shortRetryMaxTimeBudgetMillis)
     public ResponseEntity<String> getNotOkResponse() {
         log.info("calling nok");
         return restClient.get()

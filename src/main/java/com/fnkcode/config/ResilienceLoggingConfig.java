@@ -53,8 +53,9 @@ public class ResilienceLoggingConfig {
 
     private void logRetry(RetryOnRetryEvent event) {
         Throwable cause = event.getLastThrowable();
-        logger.info("Retry attempt {} for '{}' (cause: {})",
+        logger.info("Retry attempt {} waited {} for '{}' (cause: {})",
                 event.getNumberOfRetryAttempts(),
+                event.getWaitInterval().toMillis(),
                 event.getName(),
                 (cause != null ? cause.getMessage() : "none"));
     }
