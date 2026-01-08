@@ -23,11 +23,16 @@ resilience4j.retry:
 
 resilience4j.circuitbreaker:
   circuit-breaker-aspect-order: 3
+  configs:
+    default :
+      registerHealthIndicator: true
+      slidingWindowType: TIME_BASED
+      slidingWindowSize: 30
+      minimumNumberOfCalls: 10
+      failureRateThreshold: 50
+      waitDurationInOpenState: 20s
+      permittedNumberOfCallsInHalfOpenState: 3
+      automaticTransitionFromOpenToHalfOpenEnabled: true
   instances:
     normalCB:
-      sliding-window-size: 2
-      minimum-number-of-calls: 2
-      failure-rate-threshold: 50
-      wait-duration-in-open-state: 20
-      registerHealthIndicator: true
-
+      base-config: default
