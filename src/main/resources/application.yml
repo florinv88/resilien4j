@@ -33,4 +33,4 @@ resilience4j.circuitbreaker:
       waitDurationInOpenState: 20s
       permittedNumberOfCallsInHalfOpenState: 3
       automaticTransitionFromOpenToHalfOpenEnabled: true
-      record-failure-predicate: com.fnkcode.circuitbraker.CircuitBrakerPredicate
+      record-failure-predicate: com.fnkcode.circuitbraker.CourierExceptionsForResillience4jPredicate

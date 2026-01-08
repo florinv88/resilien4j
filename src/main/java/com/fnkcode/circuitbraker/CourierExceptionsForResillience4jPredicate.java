@@ -13,6 +13,10 @@ public class CourierExceptionsForResillience4jPredicate implements Predicate<Thr
             return ce.getReason().equals("COMMUNICATION");
         }
 
+        if (t instanceof org.springframework.web.client.ResourceAccessException) {
+            return true;
+        }
+
         return t instanceof java.io.IOException ||
                 t instanceof org.springframework.web.client.HttpServerErrorException;
     }

@@ -40,36 +40,49 @@ public class AppResillineceController {
                 .retrieve()
                 .toEntity(String.class);
     }
-
-    @Retry(name = "shortRetry", fallbackMethod = "getNotOkResponseFallback")
+    @StrictSLA(value = shortRetryMaxTimeBudgetMillis) // 1. Check SLA first
+    @Retry(name = "shortRetry", fallbackMethod = "getNotOkResponseFallback") // 2. Retry failures
+    @CircuitBreaker(name = "fnkCB") // 3. Check health
     @GetMapping("/nok")
-    @StrictSLA(value = shortRetryMaxTimeBudgetMillis)
-    @CircuitBreaker(name = "normalCB")
     public ResponseEntity<String> getNotOkResponse() {
-        log.info("calling nok");
+        log.info("--> Executing request to NOK endpoint");
+
+        // Using a non-existent port to force a fast I/O failure for testing
         return restClientShortTimeout.get()
-                .uri("http://localhost:8080/api/nok")
+                .uri("http://localhost:9999/api/does-not-exist")
                 .retrieve()
                 .toEntity(String.class);
     }
-    private ResponseEntity<String> getNotOkResponseFallback(Exception e) {
-        log.info(e.getMessage());
-        throw new RuntimeException(e.getMessage());
+
+    private ResponseEntity<String> getNotOkResponseFallback(Exception t) {
+        if (t instanceof CallNotPermittedException) {
+            log.warn("FAST-FAIL: Circuit 'fnkCB' is OPEN. No request made.");
+            return ResponseEntity.status(503)
+                    .header("X-Resilience-Source", "CircuitBreaker")
+                    .body("Service Temporarily Unavailable (Circuit Open)");
+        }
+
+        log.error("FINAL FAILURE: All retries exhausted or technical error: {}", t.getMessage());
+        return ResponseEntity.status(500)
+                .header("X-Resilience-Source", "Retry/General")
+                .body("Error: " + t.getMessage());
     }
+
+
     @GetMapping("/nok2")
     @CircuitBreaker(name = "fnkCB", fallbackMethod = "fnkFallback")
-    public ResponseEntity<String> getNotOk2Response() throws InterruptedIOException {
+    public ResponseEntity<String> getNotOk2Response() {
         throw new NotFoundException("test", "COMMUNICATION");
     }
 
-    public ResponseEntity<String> fnkFallback(Throwable t) {
+    public ResponseEntity<String> fnkFallback(Exception t) throws Exception {
         if (t instanceof CallNotPermittedException) {
             log.info("Circuit is OPEN! Fast-failing now.");
             return ResponseEntity.status(503).body("Circuit Open: try again later");
         }
 
         log.error("Method failed, but circuit is still closed/closing: {}", t.getMessage());
-        return ResponseEntity.status(404).body("Not Found: " + t.getMessage());
+        throw t;
     }
 
 
