@@ -26,13 +26,11 @@ resilience4j.circuitbreaker:
   configs:
     default :
       registerHealthIndicator: true
-      slidingWindowType: TIME_BASED
-      slidingWindowSize: 30
-      minimumNumberOfCalls: 10
+      slidingWindowType: COUNT_BASED
+      slidingWindowSize: 2
+      minimumNumberOfCalls: 2
       failureRateThreshold: 50
       waitDurationInOpenState: 20s
       permittedNumberOfCallsInHalfOpenState: 3
       automaticTransitionFromOpenToHalfOpenEnabled: true
-  instances:
-    normalCB:
-      base-config: default
+      record-failure-predicate: com.fnkcode.circuitbraker.CircuitBrakerPredicate
