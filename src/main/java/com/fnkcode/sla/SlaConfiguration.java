@@ -22,7 +22,7 @@ public class SlaConfiguration {
 
 
     @SuppressWarnings("unchecked")
-    private static final Class<? extends Throwable>[] RETRY_TYPES = new Class[] {
+    public static final Class<? extends Throwable>[] RETRY_TYPES = new Class[] {
             java.io.IOException.class,
             java.net.SocketTimeoutException.class,
             org.springframework.web.client.HttpServerErrorException.class,
@@ -31,10 +31,18 @@ public class SlaConfiguration {
 
     @Bean
     public RetryConfigCustomizer shortRetryCustomizer() {
+        IntervalFunction exponentialBackoff = IntervalFunction.ofExponentialRandomBackoff(
+                Duration.ofMillis(50), multiplier, randomizationFactor);
+
         return RetryConfigCustomizer.of("shortRetry", builder -> {
             builder.retryOnException(new SlaRetryPredicate(RETRY_TYPES));
-            builder.intervalFunction(IntervalFunction.ofExponentialRandomBackoff(initialInterval, multiplier, randomizationFactor)
-            );
+            builder.intervalFunction(attempt -> {
+                long nextWait = exponentialBackoff.apply(attempt);
+                if (!SlaContext.isBudgetSufficient(nextWait)) {
+                    throw new RuntimeException("SLA budget exhausted: No time to wait for retry");
+                }
+                return nextWait;
+            });
         });
     }
 

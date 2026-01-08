@@ -15,6 +15,12 @@ public class SlaContext {
         DEADLINE.remove();
     }
 
+    public static boolean isBudgetSufficient(long requiredMillis) {
+        Long deadline = DEADLINE.get();
+        if (deadline == null) return true;
+        return (System.currentTimeMillis() + requiredMillis) < deadline;
+    }
+
     public static boolean hasTimeLeft() {
         Long deadline = DEADLINE.get();
         if (deadline == null) return true;

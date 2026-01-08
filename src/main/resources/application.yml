@@ -14,11 +14,20 @@ custom-sla:
     randomization-factor: 0.5
 
 resilience4j.retry:
-  configs:
-    defaults:
-      max-attempts: 3
   instances:
     shortRetry:
-      base-config: defaults
+      max-attempts: 3
     normalRetry:
-      base-config: defaults
+     max-attempts: 2
+  retry-aspect-order: 2
+
+resilience4j.circuitbreaker:
+  circuit-breaker-aspect-order: 3
+  instances:
+    normalCB:
+      sliding-window-size: 2
+      minimum-number-of-calls: 2
+      failure-rate-threshold: 50
+      wait-duration-in-open-state: 20
+      registerHealthIndicator: true
+

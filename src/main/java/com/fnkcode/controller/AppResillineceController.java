@@ -1,6 +1,7 @@
 package com.fnkcode.controller;
 
 import com.fnkcode.sla.StrictSLA;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,12 +37,13 @@ public class AppResillineceController {
                 .toEntity(String.class);
     }
 
-    @Retry(name = "normalRetry", fallbackMethod = "getNotOkResponseFallback")
+    @Retry(name = "shortRetry", fallbackMethod = "getNotOkResponseFallback")
     @GetMapping("/nok")
     @StrictSLA(value = shortRetryMaxTimeBudgetMillis)
+    @CircuitBreaker(name = "normalCB")
     public ResponseEntity<String> getNotOkResponse() {
         log.info("calling nok");
-        return restClient.get()
+        return restClientShortTimeout.get()
                 .uri("http://localhost:8080/api/nok")
                 .retrieve()
                 .toEntity(String.class);

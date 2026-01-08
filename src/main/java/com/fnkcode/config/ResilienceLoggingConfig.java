@@ -1,5 +1,6 @@
 package com.fnkcode.config;
 
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.core.registry.EntryAddedEvent;
 import io.github.resilience4j.core.registry.EntryRemovedEvent;
 import io.github.resilience4j.core.registry.EntryReplacedEvent;
@@ -38,6 +39,29 @@ public class ResilienceLoggingConfig {
             @Override
             public void onEntryReplacedEvent(@NotNull EntryReplacedEvent<Retry> entryReplacedEvent) {
                 bindLoggers(entryReplacedEvent.getNewEntry());
+            }
+        };
+    }
+
+    @Bean
+    public RegistryEventConsumer<CircuitBreaker> cbLog() {
+        return new RegistryEventConsumer<>() {
+            @Override
+            public void onEntryAddedEvent(@NotNull EntryAddedEvent<CircuitBreaker> entryAddedEvent) {
+                entryAddedEvent.getAddedEntry().getEventPublisher()
+                        .onStateTransition(event -> logger.info("CB State Change: {}", event.getStateTransition()));
+            }
+
+            @Override
+            public void onEntryRemovedEvent(@NotNull EntryRemovedEvent<CircuitBreaker> entryRemoveEvent) {
+
+            }
+
+            @Override
+            public void onEntryReplacedEvent(@NotNull EntryReplacedEvent<CircuitBreaker> entryReplacedEvent) {
+                entryReplacedEvent.getNewEntry().getEventPublisher()
+                        .onStateTransition(event -> logger.info("CB State Change: {}", event.getStateTransition()));
+
             }
         };
     }

@@ -24,6 +24,5 @@ public class AppController {
             System.out.println(e.getMessage());
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-//        return ResponseEntity.notFound().build();
     }
 }
